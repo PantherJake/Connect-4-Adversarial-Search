@@ -230,8 +230,7 @@ def minimax(player, board, depth_limit):
 
     def max_value(player, board, depth_limit):
         max_v = -math.inf
-        print(board.terminal())
-        if board.terminal():
+        if board.terminal:
             max_v = evaluate(player, board)
         else:
             for child_board in get_child_boards(player, board):
@@ -248,7 +247,7 @@ def minimax(player, board, depth_limit):
 
     def min_value(player, board, depth_limit):
         min_v = math.inf
-        if board.terminal():
+        if board.terminal:
             min_v = evaluate(player, board)
         else:
             for child_board in get_child_boards(player, board):
