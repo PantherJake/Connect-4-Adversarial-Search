@@ -56,7 +56,7 @@ and the following methods:
 
     b.place(player, col)    # place a disc at the specific column for player
         # raise ValueError if the specific column does not have available space
-    
+
     new_board = b.clone()   # return a new board instance having the same
                             # disc placement with b
 
@@ -83,19 +83,20 @@ Hints:
     However, in practice, we need to select the action that is associated with this
     value. Here, such action is specified as the column in which a disc should be
     placed for the max player. Therefore, for each search algorithm, you should
-    consider all valid actions for the max player, and return the one that leads 
-    to the best value. 
+    consider all valid actions for the max player, and return the one that leads
+    to the best value.
 
 """
 
 # use math library if needed
 import math
 
+
 def get_child_boards(player, board):
     """
-    Generate a list of succesor boards obtained by placing a disc 
+    Generate a list of succesor boards obtained by placing a disc
     at the given board for a given player
-   
+
     Parameters
     ----------
     player: board.PLAYER1 or board.PLAYER2
@@ -105,7 +106,7 @@ def get_child_boards(player, board):
     Returns
     -------
     a list of (col, new_board) tuples,
-    where col is the column in which a new disc is placed (left column has a 0 index), 
+    where col is the column in which a new disc is placed (left column has a 0 index),
     and new_board is the resulting board instance
     """
     res = []
@@ -142,8 +143,8 @@ def evaluate(player, board):
     # s2 for two slots occupied
     # s3 for three
     # s4 for four
-    score = [0]*5
-    adv_score = [0]*5
+    score = [0] * 5
+    adv_score = [0] * 5
 
     # Initialize the weights
     # [w0, w1, w2, w3, --w4--]
@@ -155,31 +156,31 @@ def evaluate(player, board):
     seg = []
     invalid_slot = -1
     left_revolved = [
-        [invalid_slot]*r + board.row(r) + \
-        [invalid_slot]*(board.rows-1-r) for r in range(board.rows)
+        [invalid_slot] * r + board.row(r) + \
+        [invalid_slot] * (board.rows - 1 - r) for r in range(board.rows)
     ]
     right_revolved = [
-        [invalid_slot]*(board.rows-1-r) + board.row(r) + \
-        [invalid_slot]*r for r in range(board.rows)
+        [invalid_slot] * (board.rows - 1 - r) + board.row(r) + \
+        [invalid_slot] * r for r in range(board.rows)
     ]
     for r in range(board.rows):
         # row
-        row = board.row(r) 
-        for c in range(board.cols-3):
-            seg.append(row[c:c+4])
+        row = board.row(r)
+        for c in range(board.cols - 3):
+            seg.append(row[c:c + 4])
     for c in range(board.cols):
         # col
-        col = board.col(c) 
-        for r in range(board.rows-3):
-            seg.append(col[r:r+4])
+        col = board.col(c)
+        for r in range(board.rows - 3):
+            seg.append(col[r:r + 4])
     for c in zip(*left_revolved):
         # slash
-        for r in range(board.rows-3):
-            seg.append(c[r:r+4])
-    for c in zip(*right_revolved): 
+        for r in range(board.rows - 3):
+            seg.append(c[r:r + 4])
+    for c in zip(*right_revolved):
         # backslash
-        for r in range(board.rows-3):
-            seg.append(c[r:r+4])
+        for r in range(board.rows - 3):
+            seg.append(c[r:r + 4])
     # compute score
     for s in seg:
         if invalid_slot in s:
@@ -188,8 +189,8 @@ def evaluate(player, board):
             score[s.count(player)] += 1
         if player not in s:
             adv_score[s.count(adversary)] += 1
-    reward = sum([s*w for s, w in zip(score, weights)])
-    penalty = sum([s*w for s, w in zip(adv_score, weights)])
+    reward = sum([s * w for s, w in zip(score, weights)])
+    penalty = sum([s * w for s, w in zip(adv_score, weights)])
     return reward - penalty
 
 
@@ -214,22 +215,23 @@ def minimax(player, board, depth_limit):
         None to give up the game
     """
     max_player = player
-    print(player)
     placement = None
+    action = 0
 
-### Please finish the code below ##############################################
-###############################################################################
+    ### Please finish the code below ##############################################
+    ###############################################################################
     def value(player, board, depth_limit):
         if player == max_player:
-            action, val = max_value(player, board, depth_limit)
+            val = max_value(player, board, depth_limit)
         else:
-            action, val = min_value(player, board, depth_limit)
-        return action, val
+            val = min_value(player, board, depth_limit)
+            print("min")
+        return val
 
     def max_value(player, board, depth_limit):
         max_v = -math.inf
-        action = None
-        if not board.terminal():
+        print(board.terminal())
+        if board.terminal():
             max_v = evaluate(player, board)
         else:
             for child_board in get_child_boards(player, board):
@@ -237,16 +239,16 @@ def minimax(player, board, depth_limit):
                     p = board.PLAYER2
                 else:
                     p = board.PLAYER1
-                a, v = value(p, child_board, depth_limit)
+
+                v = value(p, child_board, depth_limit)
                 if v > max_v:
                     max_v = v
                     action = child_board[0]
-        return action, max_v
-    
+        return max_v
+
     def min_value(player, board, depth_limit):
         min_v = math.inf
-        action = None
-        if not board.terminal():
+        if board.terminal():
             min_v = evaluate(player, board)
         else:
             for child_board in get_child_boards(player, board):
@@ -258,20 +260,20 @@ def minimax(player, board, depth_limit):
                 if v < min_v:
                     min_v = v
                     action = child_board[0]
-        return action, min_v
+        return min_v
 
     next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
     score = -math.inf
 
-###############################################################################
-    placement, val = value(max_player, board, depth_limit)
+    ###############################################################################
+    placement = value(max_player, board, depth_limit)
     return placement
 
 
 def alphabeta(player, board, depth_limit):
     """
     Minimax algorithm with alpha-beta pruning.
-
+    d
      Parameters
     ----------
     player: board.PLAYER1 or board.PLAYER2
@@ -294,20 +296,20 @@ def alphabeta(player, board, depth_limit):
     max_player = player
     placement = None
 
-### Please finish the code below ##############################################
-###############################################################################
+    ### Please finish the code below ##############################################
+    ###############################################################################
     def value(player, board, depth_limit):
         pass
 
     def max_value(player, board, depth_limit):
         pass
-    
+
     def min_value(player, board, depth_limit):
         pass
 
     next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
     score = -math.inf
-###############################################################################
+    ###############################################################################
     return placement
 
 
@@ -339,20 +341,20 @@ def expectimax(player, board, depth_limit):
     max_player = player
     placement = None
 
-### Please finish the code below ##############################################
-###############################################################################
+    ### Please finish the code below ##############################################
+    ###############################################################################
     def value(player, board, depth_limit):
         pass
 
     def max_value(player, board, depth_limit):
         pass
-    
+
     def min_value(player, board, depth_limit):
         pass
 
     next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
     score = -math.inf
-###############################################################################
+    ###############################################################################
     return placement
 
 
