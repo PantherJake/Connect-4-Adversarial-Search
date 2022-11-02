@@ -216,48 +216,46 @@ def minimax(player, board, depth_limit):
     """
     max_player = player
     placement = None
-    action = 0
-
+    action = None
     ### Please finish the code below ##############################################
     ###############################################################################
     def value(player, board, depth_limit):
+        print("player:", player, " max_p:", max_player)
         if player == max_player:
-            val = max_value(player, board, depth_limit)
-        else:
             val = min_value(player, board, depth_limit)
-            print("min")
+        else:
+            val = max_value(player, board, depth_limit)
         return val
 
     def max_value(player, board, depth_limit):
+#        print("max depth limit", depth_limit)
         max_v = -math.inf
-        if board.terminal:
+        if board.terminal() or depth_limit == 0:
             max_v = evaluate(player, board)
         else:
+            p = next_player
             for child_board in get_child_boards(player, board):
-                if player == board.PLAYER1:
-                    p = board.PLAYER2
-                else:
-                    p = board.PLAYER1
-
-                v = value(p, child_board, depth_limit)
+                v = value(p, child_board[1], depth_limit-1)
+                print("value: ", v, "action: ", child_board[0])
                 if v > max_v:
                     max_v = v
+                    nonlocal action
                     action = child_board[0]
         return max_v
 
     def min_value(player, board, depth_limit):
+   #     print("min", depth_limit)
         min_v = math.inf
-        if board.terminal:
+        if board.terminal() or depth_limit == 0:
             min_v = evaluate(player, board)
         else:
+            p = next_player
             for child_board in get_child_boards(player, board):
-                if player == board.PLAYER1:
-                    p = board.PLAYER2
-                else:
-                    p = board.PLAYER1
-                v = value(p, child_board, depth_limit)
+                v = value(p, child_board[1], depth_limit-1)
+                print("value: ", v, "action: ", child_board[0])
                 if v < min_v:
                     min_v = v
+                    nonlocal action
                     action = child_board[0]
         return min_v
 
@@ -265,7 +263,9 @@ def minimax(player, board, depth_limit):
     score = -math.inf
 
     ###############################################################################
-    placement = value(max_player, board, depth_limit)
+    max_val = value(max_player, board, depth_limit)
+    placement = action
+    print("max value: ", max_val, " best action: ", action)
     return placement
 
 
@@ -294,17 +294,59 @@ def alphabeta(player, board, depth_limit):
     """
     max_player = player
     placement = None
+    alpha = -math.inf
+    beta = math.inf
+    action = None
 
     ### Please finish the code below ##############################################
     ###############################################################################
     def value(player, board, depth_limit):
-        pass
+        print("player:", player, " max_p:", max_player)
+        if player == max_player:
+            val = min_value(player, board, depth_limit)
+        else:
+            val = max_value(player, board, depth_limit)
+        return val
 
     def max_value(player, board, depth_limit):
-        pass
+        max_v = -math.inf
+        if board.terminal() or depth_limit == 0:
+            max_v = evaluate(player, board)
+        else:
+            p = next_player
+            for child_board in get_child_boards(player, board):
+                v = value(p, child_board[1], depth_limit - 1)
+                print("value: ", v, "action: ", child_board[0])
+
+                if v > max_v:
+                    max_v = v
+                    nonlocal action
+                    action = child_board[0]
+                    nonlocal alpha
+                    alpha = v
+        return max_v
 
     def min_value(player, board, depth_limit):
-        pass
+        min_v = math.inf
+        if board.terminal() or depth_limit == 0:
+            min_v = evaluate(player, board)
+        else:
+            p = next_player
+            for child_board in get_child_boards(player, board):
+                v = value(p, child_board[1], depth_limit - 1)
+                print("value: ", v, "action: ", child_board[0])
+                # check if alpha value is greater than the actual child value if yes we can return and skip/ ignore
+                # all other values
+                if alpha > v:
+                    return v
+
+                if v < min_v:
+                    min_v = v
+                    nonlocal action
+                    action = child_board[0]
+                    nonlocal beta
+                    beta = v
+        return min_v
 
     next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
     score = -math.inf
