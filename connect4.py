@@ -7,6 +7,7 @@
 # 
 # Authors: Pei Xu (peix@g.clemson.edu) and Ioannis Karamouzas (ioannis@g.clemson.edu)
 #
+# AI ASSIGNMENT 3: Jannik Scheider & Jake Vickio
 import random
 """
 In this assignment, the task is to implement the minimax algorithm with depth
@@ -216,10 +217,12 @@ def minimax(player, board, depth_limit):
     """
     max_player = player
     placement = None
-    action = None
     ### Please finish the code below ##############################################
     ###############################################################################
     def value(player, board, depth_limit):
+        if board.terminal() or depth_limit == 0:
+            return (0, evaluate(max_player, board))
+
         if player == max_player:
             val = max_value(player, board, depth_limit)
         else:
@@ -228,47 +231,40 @@ def minimax(player, board, depth_limit):
 
     def max_value(player, board, depth_limit):
         max_v = -math.inf
-        if board.terminal() or depth_limit == 0:
-            max_v = evaluate(player, board)
-        else:
-            next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-            p = next_player
-            for child_board in get_child_boards(player, board):
-                # calculating value for the current board
-                v = value(p, child_board[1], depth_limit-1)
-                if v > max_v:
-                    # update maximum value
-                    max_v = v
-                    # set the best action
-                    nonlocal action
-                    action = child_board[0]
-        return max_v
+        policy = get_child_boards(player, board)[0]
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
+
+        for child_board in get_child_boards(player, board):
+            # calculating value for the current board
+            v = value(next_player, child_board[1], depth_limit-1)[1]
+            if v > max_v:
+                # update maximum value
+                max_v = v
+                # set the best action
+                policy = child_board[0]
+
+        return policy, max_v
 
     def min_value(player, board, depth_limit):
         min_v = math.inf
-        if board.terminal() or depth_limit == 0:
-            min_v = evaluate(player, board)
-        else:
-            next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-            p = next_player
-            for child_board in get_child_boards(player, board):
-                # calculating value for the current child board
-                v = value(p, child_board[1], depth_limit-1)
+        policy = get_child_boards(player, board)[0]
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
 
-                if v < min_v:
-                    # update minimum value
-                    min_v = v
-                    # update best action
-                    nonlocal action
-                    action = child_board[0]
-        return min_v
+        for child_board in get_child_boards(player, board):
+            # calculating value for the current child board
+            v = value(next_player, child_board[1], depth_limit-1)[1]
 
-    score = -math.inf
+            if v < min_v:
+                # update minimum value
+                min_v = v
+                # update best action
+                policy = child_board[0]
 
+        return policy, min_v
+
+    placement = value(max_player, board, depth_limit)[0]
     ###############################################################################
     # start the algorithm with calling the value function
-    max_val = value(max_player, board, depth_limit)
-    placement = action
     # returning the best action
     return placement
 
@@ -300,11 +296,13 @@ def alphabeta(player, board, depth_limit):
     placement = None
     alpha = -math.inf
     beta = math.inf
-    action = None
 
     ### Please finish the code below ##############################################
     ###############################################################################
     def value(player, board, depth_limit):
+        if board.terminal() or depth_limit == 0:
+            return (0, evaluate(max_player, board))
+
         if player == max_player:
             val = max_value(player, board, depth_limit)
         else:
@@ -313,52 +311,46 @@ def alphabeta(player, board, depth_limit):
 
     def max_value(player, board, depth_limit):
         max_v = -math.inf
-        if board.terminal() or depth_limit == 0:
-            max_v = evaluate(player, board)
-        else:
-            next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-            p = next_player
-            for child_board in get_child_boards(player, board):
-                v = value(p, child_board[1], depth_limit - 1)
-                # cutoff if v > beta, we don't have to check the other childs
-                if v > beta:
-                    break
-                if v > max_v:
-                    max_v = v
-                    nonlocal action
-                    action = child_board[0]
-                    nonlocal alpha
-                    if alpha < v:
-                        alpha = v
-        return max_v
+        policy = get_child_boards(player, board)[0]
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
+
+        for child_board in get_child_boards(player, board):
+            v = value(next_player, child_board[1], depth_limit - 1)[1]
+            # cutoff if v > beta, we don't have to check the other childs
+            if v > beta:
+                policy = child_board[0]
+                break
+            if v > max_v:
+                max_v = v
+                policy = child_board[0]
+                nonlocal alpha
+                if alpha < v:
+                    alpha = v
+        return policy, max_v
 
     def min_value(player, board, depth_limit):
         min_v = math.inf
-        if board.terminal() or depth_limit == 0:
-            min_v = evaluate(player, board)
-        else:
-            next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-            p = next_player
-            for child_board in get_child_boards(player, board):
-                v = value(p, child_board[1], depth_limit - 1)
-                # check if alpha value is greater than the actual child value if yes we can return and skip/ ignore
-                # all other values
-                if v < alpha:
-                    break
-                if v < min_v:
-                    min_v = v
-                    nonlocal action
-                    action = child_board[0]
-                    nonlocal beta
-                    if beta > v:
-                        beta = v
-        return min_v
+        policy = get_child_boards(player, board)[0]
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
 
-    score = -math.inf
+        for child_board in get_child_boards(player, board):
+            v = value(next_player, child_board[1], depth_limit - 1)[1]
+            # check if alpha value is greater than the actual child value if yes we can return and skip/ ignore
+            # all other values
+            if v < alpha:
+                policy = child_board[0]
+                break
+            if v < min_v:
+                min_v = v
+                policy = child_board[0]
+                nonlocal beta
+                if beta > v:
+                    beta = v
+        return policy, min_v
+
     ###############################################################################
     # start the algorithm with calling the value function
-    max_val = value(max_player, board, depth_limit)
-    placement = action
+    placement = value(max_player, board, depth_limit)[0]
     # returning the best action
     return placement
 
@@ -390,11 +382,13 @@ def expectimax(player, board, depth_limit):
     """
     max_player = player
     placement = None
-    action = None
 
     ### Please finish the code below ##############################################
     ###############################################################################
     def value(player, board, depth_limit):
+        if board.terminal() or depth_limit == 0:
+            return (0, evaluate(max_player, board))
+
         if player == max_player:
             val = exp_value(player, board, depth_limit)
         else:
@@ -403,42 +397,41 @@ def expectimax(player, board, depth_limit):
 
     def max_value(player, board, depth_limit):
         max_v = -math.inf
-        if board.terminal() or depth_limit == 0:
-            max_v = evaluate(player, board)
-        else:
-            next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-            p = next_player
-            for child_board in get_child_boards(player, board):
-                v = value(p, child_board[1], depth_limit - 1)
-                if v > max_v:
-                    max_v = v
-                    nonlocal action
-                    action = child_board[0]
-        return max_v
+        policy = get_child_boards(player, board)[0]
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
+
+        for child_board in get_child_boards(player, board):
+            # calculating value for the current board
+            v = value(next_player, child_board[1], depth_limit - 1)[1]
+            if v > max_v:
+                # update maximum value
+                max_v = v
+                # set the best action
+                policy = child_board[0]
+
+        return policy, max_v
 
     def exp_value(player, board, depth_limit):
         min_v = 0
         v = 0
-        if board.terminal() or depth_limit == 0:
-            min_v = evaluate(player, board)
-        else:
-            next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
-            p = next_player
-            # calculating the expected value for all the children of one parent
-            for child_board in get_child_boards(player, board):
-                # probability to select the specific child
-                probability = 1/len(get_child_boards(player, board))
-                v = v + (value(p, child_board[1], depth_limit - 1) * probability)
+        policy = get_child_boards(player, board)[0]
+        next_player = board.PLAYER2 if player == board.PLAYER1 else board.PLAYER1
 
-        nonlocal action
-        action = random.randrange(1, len(get_child_boards(player, board))) -1
-        return v
+        # calculating the expected value for all the children of one parent
+        for child_board in get_child_boards(player, board):
+            # probability to select the specific child
+            probability = 1/len(get_child_boards(player, board))
+            v = v + (value(next_player, child_board[1], depth_limit - 1)[1] * probability)
 
-    score = -math.inf
+        policy = random.randrange(1, len(get_child_boards(player, board))) - 1
+        while not board.placeable(policy):
+            policy = random.randrange(1, len(get_child_boards(player, board))) - 1
+
+        return policy, v
+
     ###############################################################################
     # start the algorithm with calling the value function
-    max_val = value(max_player, board, depth_limit)
-    placement = action
+    placement = value(max_player, board, depth_limit)[0]
     # returning the best action
     return placement
 
